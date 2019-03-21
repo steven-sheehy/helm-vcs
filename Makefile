@@ -2,7 +2,7 @@ BINARY  := helmvcs
 GOARCH  := amd64
 IMAGE   := steven-sheehy/helm-vcs
 MAIN    := cmd/helmvcs/main.go
-PKGS    := $(go list ./... | grep -v vendor)
+PKGS    := $(shell go list ./... | grep -v vendor)
 VERSION := v0.1.0
 
 all: clean build test install
