@@ -3,11 +3,11 @@ entries:
   test:
   - apiVersion: v1
     appVersion: "1.0"
-    created: 2019-03-20T22:27:13.038124-05:00
+    created: 2019-03-20T22:29:04.757826-05:00
     description: A Helm chart for Kubernetes
     digest: e6600d495fdb5b572b2eb0c4fb474645f646263e928012e38a7fa74c76a563fd
     name: test
     urls:
-    - https://grafana.github.io/helm-vcs/charts/test-0.1.0.tgz
+    - https://steven-sheehy.github.io/helm-vcs/charts/test-0.1.0.tgz
     version: 0.1.0
-generated: 2019-03-20T22:27:13.037438-05:00
+generated: 2019-03-20T22:29:04.757232-05:00
