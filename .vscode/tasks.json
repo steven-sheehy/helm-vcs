@@ -1,0 +1,36 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    
+    {
+      "type": "shell",
+      "label": "Build",
+      "command": "task",
+      "args": [
+        "build"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    
+    {
+      "label": "Run tests",
+      "type": "shell",
+      "command": "task",
+      "group": "test",
+      "args": [
+        "test"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    }
+  ]
+}
