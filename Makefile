@@ -31,9 +31,9 @@ install:
 	go install -v $(MAIN)
 
 lint:
-	go get -u github.com/golangci/golangci-lint/cmd/golangci-lint &>/dev/null
-	golangci-lint run $(PKGS)
+	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s
+	./bin/golangci-lint run
 
-test: lint
+test:
 	go test $(PKGS) -v -cover -coverprofile=c.ou $(MAIN)
 

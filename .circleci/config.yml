@@ -1,0 +1,44 @@
+version: 2
+
+workflows:
+  version: 2
+  test-build-deploy:
+    jobs:
+    - test
+    - lint
+    - build
+
+jobs:
+  test:
+    docker:
+    - image: circleci/golang:1.11
+    steps:
+    - checkout
+    - restore_cache:
+        keys:
+          - go-mod
+    - run: make test
+    - save_cache:
+        key: go-mod
+        paths:
+        - "/go/pkg/mod"
+  lint:
+    docker:
+    - image: circleci/golang:1.11
+    steps:
+    - checkout
+    - run: make lint
+  build:
+    docker:
+    - image: circleci/golang:1.11
+    steps:
+    - checkout
+    - restore_cache:
+        keys:
+        - go-mod
+    - run: make build
+    - save_cache:
+        key: go-mod
+        paths:
+        - "/go/pkg/mod"
+

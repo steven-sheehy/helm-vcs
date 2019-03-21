@@ -49,8 +49,8 @@ require (
 	golang.org/x/crypto v0.0.0-20190320223903-b7391e95e576 // indirect
 	golang.org/x/net v0.0.0-20190320064053-1272bf9dcd53 // indirect
 	golang.org/x/sync v0.0.0-20190227155943-e225da77a7e6 // indirect
-	golang.org/x/sys v0.0.0-20190318195719-6c81ef8f67ca // indirect
-	golang.org/x/tools v0.0.0-20190320215829-36c10c0a621f // indirect
+	golang.org/x/sys v0.0.0-20190321052220-f7bb7a8bee54 // indirect
+	golang.org/x/tools v0.0.0-20190321190150-c5e06eb4cd0c // indirect
 	//github.com/Masterminds/semver v1.4.2
 	// github.com/Masterminds/vcs v1.13.0
 	// github.com/ghodss/yaml v1.0.0
