@@ -15,3 +15,7 @@ func (a DownloadAction) Run() error {
 	return nil
 }
 
+func (a DownloadAction) String() string {
+	return fmt.Sprintf("DownloadAction{URI: %v}", a.URI)
+}
+

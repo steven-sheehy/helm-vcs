@@ -2,11 +2,7 @@ package action
 
 import (
 	"fmt"
-	"os"
-	"github.com/pkg/errors"
-	"k8s.io/helm/pkg/helm/environment"
-	"k8s.io/helm/pkg/helm/helmpath"
-	"k8s.io/helm/pkg/repo"
+	"github.com/steven-sheehy/helm-vcs/pkg/chart"
 )
 
 type InitAction struct {
@@ -20,40 +16,15 @@ type InitAction struct {
 }
 
 func (a InitAction) Run() error {
-	return a.addRepo()
+	repository, err := chart.NewRepository(a.Name, a.URI)
+	if err != nil {
+		return err
+	}
+
+	return repository.Update()
 }
 
-func (a InitAction) addRepo() error {
-	home := a.getHome()
-	repoFile, err := repo.LoadRepositoriesFile(home.RepositoryFile())
-	if err != nil {
-		return errors.Wrap(err, "Unable to load repositories file")
-	}
-
-	repoEntry := &repo.Entry{
-		Name: a.Name,
-		URL: a.URI,
-		Cache: fmt.Sprintf("%s-index.yaml", a.Name),
-	}
-
-	repoFile.Update(repoEntry)
-	err = repoFile.WriteFile(home.RepositoryFile(), 0644)
-
-	if err != nil {
-		return errors.Wrap(err, "Unable to write repositories file")
-	}
-
-	return nil
-}
-
-func (a InitAction) getHome() helmpath.Home {
-	home := helmpath.Home(environment.DefaultHelmHome)
-
-	envHome := os.Getenv("HELM_HOME")
-	if envHome != "" {
-		home = helmpath.Home(envHome)
-	}
-
-	return home
+func (a InitAction) String() string {
+	return fmt.Sprintf("InitAction{Name: '%v', URI: '%v', Path: '%v', Ref: '%v', UseTag: %v}", a.Name, a.URI, a.Path, a.Ref, a.UseTag)
 }
 
