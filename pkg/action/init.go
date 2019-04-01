@@ -2,7 +2,6 @@ package action
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"github.com/pkg/errors"
 	"k8s.io/helm/pkg/helm/environment"
@@ -20,11 +19,8 @@ type InitAction struct {
 	UseTag bool
 }
 
-func (a InitAction) Run() {
-	err := a.addRepo()
-        if err != nil {
-                log.Fatal(err)
-        }
+func (a InitAction) Run() error {
+	return a.addRepo()
 }
 
 func (a InitAction) addRepo() error {
