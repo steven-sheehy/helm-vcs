@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"github.com/steven-sheehy/helm-vcs/pkg/action"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -18,21 +17,18 @@ func main() {
 	init.Flag("ref", "A specific tag, branch or commit to checkout").StringVar(&initAction.Ref)
 	init.Flag("use-tag", "Override the Chart.yaml version with the VCS tag").BoolVar(&initAction.UseTag)
 
-	download := app.Command("download", "Download a file from the VCS repo")
-	download.Arg("certificate", "The certificate file to use").String()
-	download.Arg("key", "The private key to use").String()
-	download.Arg("CA", "The Certificate Authority to use").String()
-	download.Arg("uri", "The URI to download").String()
+	downloadAction := action.DownloadAction{}
+	download := app.Command("download", "Download a file from the VCS repo. This is an internal command for use by Helm")
+	download.Arg("certificate", "The certificate file to use").Required().String()
+	download.Arg("key", "The private key to use").Required().String()
+	download.Arg("CA", "The Certificate Authority to use").Required().String()
+	download.Arg("uri", "The URI to download").Required().StringVar(&downloadAction.URI)
 
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 		case init.FullCommand():
-			fmt.Printf("init repo: %v\n", initAction.URI)
-			fmt.Printf("init name: %v\n", initAction.Name)
-			fmt.Printf("init ref: %v\n", initAction.Ref)
-			fmt.Printf("init tags: %v\n", initAction.UseTag)
-			fmt.Printf("init path: %v\n", initAction.Path)
+			initAction.Run()
 		case download.FullCommand():
-			fmt.Printf("apiVersion: v1\nentries: {}\n")
+			downloadAction.Run()
 	}
 }
 

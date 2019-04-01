@@ -1,6 +1,6 @@
 name: "vcs"
 version: "0.1.0"
-usage: "A Helm plugin that turns any version control system (bzr, git, hg, svn) into a chart repository"
+usage: "Turns any version control repository into a chart repository"
 description: |-
   Allows Helm to directly use any existing VCS as a chart repository, without changes. Supports Bazaar, Git, Mercurial and Subversion.
   https://github.com/steven-sheehy/helm-vcs

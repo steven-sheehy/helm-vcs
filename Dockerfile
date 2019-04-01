@@ -1,3 +1,3 @@
 FROM scratch
-ADD bin/linux/helmvcs /helmvcs
-CMD ["/helmvcs"]
+ADD helmvcs /usr/bin/helmvcs
+CMD ["/usr/bin/helmvcs"]
