@@ -1,10 +1,10 @@
-# helm-vcs
+# Helm VCS
 
 [![CircleCI](https://circleci.com/gh/steven-sheehy/helm-vcs.svg?style=shield)](https://circleci.com/gh/steven-sheehy/helm-vcs)
 [![License Apache](https://img.shields.io/badge/license-apache-blue.svg?style=flat)](LICENSE)
 [![GitHub release](https://img.shields.io/github/release/steven-sheehy/helm-vcs.svg)](https://github.com/steven-sheehy/helm-vcs/releases)
 
-A [Helm](https://helm.sh) plugin that turns any version control system (bzr, git, hg, svn) into a chart repository
+A [Helm](https://helm.sh) plugin that turns any version control system into a chart repository
 
 ## Motivation
 
