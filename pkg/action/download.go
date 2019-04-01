@@ -5,11 +5,12 @@ import (
 )
 
 type DownloadAction struct {
+	Action
+
 	URI string
 }
 
-func (a DownloadAction) Run() error {
+func (a DownloadAction) Run() {
 	fmt.Printf("apiVersion: v1\nentries: {}\n")
-	return nil
 }
 
