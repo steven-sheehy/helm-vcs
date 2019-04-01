@@ -2,7 +2,6 @@ package chart
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -12,6 +11,7 @@ import (
 	"k8s.io/helm/pkg/helm/helmpath"
 	"k8s.io/helm/pkg/plugin/cache"
 	"k8s.io/helm/pkg/repo"
+	log "github.com/sirupsen/logrus"
 )
 
 type Repository struct {
@@ -80,7 +80,7 @@ func getNameFromURI(uri string) (string, error) {
 		name = strings.TrimSuffix(name, ".git")
 	}
 
-	log.Printf("Extracted project name from URI: %v", name)
+	log.Infof("Extracted project name from URI: %v", name)
 	return name, nil
 }
 

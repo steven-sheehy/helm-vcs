@@ -1,13 +1,15 @@
 package main
 
 import (
-	"log"
 	"os"
 	"github.com/steven-sheehy/helm-vcs/pkg/action"
 	"gopkg.in/alecthomas/kingpin.v2"
+	log "github.com/sirupsen/logrus"
 )
 
 func main() {
+	log.SetFormatter(&log.TextFormatter{FullTimestamp: true})
+
 	app := kingpin.New("helm vcs", "Allows any version control system (bzr, git, hg, svn) to be used as a Helm chart repository")
 	actions := make(map[string]action.Action)
 
@@ -34,7 +36,7 @@ func main() {
 		log.Fatalf("Unknown command: %s", command)
 	}
 
-	log.Printf("Running %v", action)
+	log.Infof("Running %v", action)
 	err := action.Run()
 
 	if err != nil {
