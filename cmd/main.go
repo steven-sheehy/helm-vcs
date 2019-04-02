@@ -36,7 +36,7 @@ func main() {
 		log.Fatalf("Unknown command: %s", command)
 	}
 
-	log.Infof("Running %v", action)
+	log.Infof("Running %v action with args: %v", command, action)
 	err := action.Run()
 
 	if err != nil {

@@ -11,7 +11,6 @@ import (
 	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/helm/helmpath"
-	"k8s.io/helm/pkg/proto/hapi/chart"
 	"k8s.io/helm/pkg/repo"
 	log "github.com/sirupsen/logrus"
 )
@@ -34,6 +33,8 @@ func NewRepository(name, uri string) (*Repository, error) {
 		return nil, errors.New("Missing required vcs URI")
 	}
 
+	r := &Repository{}
+
 	if name == "" {
 		projectName, err := projectName(uri)
 		if err != nil {
@@ -41,37 +42,37 @@ func NewRepository(name, uri string) (*Repository, error) {
 		}
 		name = projectName
 	}
+	r.Name = name
 
-	local := PluginHome().Path("repository", name)
-	repo, err := vcs.NewRepo(uri, local)
+	localPath := r.path("vcs")
+	repo, err := vcs.NewRepo(uri, localPath)
 	if err != nil {
 		return nil, err
 	}
+	r.vcsRepo = repo
 
-	return &Repository{Name: name, vcsRepo: repo}, nil
+	return r, nil
+}
+
+func (r Repository) path(subPath string) string {
+	return HelmHome().Path("plugins", pluginName, "repository", r.Name, subPath)
+}
+
+func (r Repository) Reset() error {
+	chartPath := r.path("chart")
+	_, err := os.Stat(chartPath)
+
+	if os.IsNotExist(err) {
+		return nil
+	}
+
+	return os.RemoveAll(chartPath)
 }
 
 func (r Repository) Update() error {
 	home := HelmHome()
-	repoFile, err := repo.LoadRepositoriesFile(home.RepositoryFile())
-	if err != nil {
-		return errors.Wrap(err, "Unable to load repositories file")
-	}
 
-	repoEntry := &repo.Entry{
-		Name: r.Name,
-		URL: r.vcsRepo.Remote(),
-		Cache: home.CacheIndex(r.Name),
-	}
-
-	repoFile.Update(repoEntry)
-	err = repoFile.WriteFile(home.RepositoryFile(), 0644)
-
-	if err != nil {
-		return errors.Wrap(err, "Unable to write repositories file")
-	}
-
-	if _, err = os.Stat(r.vcsRepo.LocalPath()); os.IsNotExist(err) {
+	if _, err := os.Stat(r.vcsRepo.LocalPath()); os.IsNotExist(err) {
 		log.Infof("Cloning %v", r.vcsRepo.LocalPath())
 		err = r.vcsRepo.Get()
 		if err != nil {
@@ -90,9 +91,19 @@ func (r Repository) Update() error {
 		return err
 	}
 
-	charts := make(map[string]*chart.Chart)
+	chartsPath := r.path("chart")
 	startPath := r.vcsRepo.LocalPath() + r.Path + string(filepath.Separator)
-	log.Infof("Search for charts at path: %v", startPath)
+	log.Debugf("Search for charts at relative path: '%v'", r.Path)
+
+	err = r.Reset()
+	if err != nil {
+		return err
+	}
+
+	err = os.MkdirAll(chartsPath, 0755)
+	if err != nil {
+		return err
+	}
 
 	for _, version := range versions {
 		log.Infof("Checking out %v", version)
@@ -119,24 +130,48 @@ func (r Repository) Update() error {
 					return nil
 				}
 
-				chartKey := chart.GetMetadata().GetName() + chart.GetMetadata().GetVersion()
-				if _, exists := charts[chartKey]; !exists {
-					charts[chartKey] = chart
-					log.Infof("Added new chart at %v", strings.TrimPrefix(path, startPath))
+				_, err = chartutil.Save(chart, chartsPath)
+				if err != nil {
+					log.Errorf("Unable to save chart", err)
+					return nil
 				}
+
+				log.Infof("Added new chart at %v", strings.TrimPrefix(chartPath, startPath))
 			}
 
 			return nil
 		})
 
 		if err != nil {
-			log.Errorf("Error searching for charts: %v", version, err)
+			log.Errorf("Error searching for charts: %v", err)
 		}
 	}
 
-//	if err := idx.WriteFile(repoEntry.Cache, 0644); err != nil {
-//		return err
-//	}
+	index, err := repo.IndexDirectory(chartsPath, chartsPath)
+	if err != nil {
+		return err
+	}
+
+	if err := index.WriteFile(filepath.Join(chartsPath, "index.yaml"), 0644); err != nil {
+		return err
+	}
+
+	repoFile, err := repo.LoadRepositoriesFile(home.RepositoryFile())
+	if err != nil {
+		return errors.Wrap(err, "Unable to load repositories file")
+	}
+
+	repoEntry := &repo.Entry{
+		Name: r.Name,
+		URL: r.vcsRepo.Remote(),
+		Cache: home.CacheIndex(r.Name),
+	}
+
+	repoFile.Update(repoEntry)
+	err = repoFile.WriteFile(home.RepositoryFile(), 0644)
+	if err != nil {
+		return errors.Wrap(err, "Unable to write repositories file")
+	}
 
 	return nil
 }
@@ -156,7 +191,7 @@ func (r Repository) Versions() ([]*semver.Version, error) {
 	}
 
 	sort.Sort(semver.Collection(versions))
-	log.Infof("Found versions: %v", versions)
+	log.Debugf("Found versions: %v", versions)
 	return versions, nil
 }
 
@@ -186,9 +221,5 @@ func HelmHome() helmpath.Home {
 	}
 
 	return home
-}
-
-func PluginHome() helmpath.Home {
-	return helmpath.Home(helmpath.Home(HelmHome().Plugins()).Path(pluginName))
 }
 
