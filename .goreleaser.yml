@@ -1,6 +1,6 @@
 builds:
 - main: ./cmd/main.go
-  binary: helmvcs
+  binary: helm-vcs
   env:
   - CGO_ENABLED=0
   goos:

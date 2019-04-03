@@ -1,4 +1,4 @@
-BINARY  := helmvcs
+BINARY  := helm-vcs
 IMAGE   := steven-sheehy/helm-vcs
 MAIN    := cmd/main.go
 PKGS    := $(shell go list ./... | grep -v vendor)
@@ -15,11 +15,9 @@ clean:
 coverage: test
 	go tool cover -html=c.out -o coverage.html
 
-docker:
-	docker build -t $(IMAGE) .
-
-install:
-	go install -v $(MAIN)
+install: build
+	mkdir -p ~/.helm/plugins/helm-vcs
+	cp ${BINARY} plugin.yaml LICENSE README.md ~/.helm/plugins/helm-vcs
 
 lint:
 	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s

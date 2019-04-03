@@ -4,9 +4,9 @@ usage: "Turns any version control repository into a chart repository"
 description: |-
   Allows Helm to directly use any existing VCS as a chart repository, without changes. Supports Bazaar, Git, Mercurial and Subversion.
   https://github.com/steven-sheehy/helm-vcs
-command: "$HELM_PLUGIN_DIR/helmvcs"
+command: "$HELM_PLUGIN_DIR/helm-vcs"
 downloaders:
-- command: "helmvcs"
+- command: "helm-vcs"
   protocols:
   - "bzr"
   - "git"

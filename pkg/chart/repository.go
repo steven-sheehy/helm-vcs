@@ -132,7 +132,7 @@ func (r Repository) Update() error {
 
 				_, err = chartutil.Save(chart, chartsPath)
 				if err != nil {
-					log.Errorf("Unable to save chart", err)
+					log.Errorf("Unable to save chart: %v", err)
 					return nil
 				}
 
@@ -161,9 +161,15 @@ func (r Repository) Update() error {
 		return errors.Wrap(err, "Unable to load repositories file")
 	}
 
+	repoURL := r.vcsRepo.Remote()
+	protocol := string(r.vcsRepo.Vcs()) + "://"
+	if !strings.HasPrefix(repoURL, protocol) {
+		repoURL = protocol + repoURL
+	}
+
 	repoEntry := &repo.Entry{
 		Name: r.Name,
-		URL: r.vcsRepo.Remote(),
+		URL: repoURL,
 		Cache: home.CacheIndex(r.Name),
 	}
 

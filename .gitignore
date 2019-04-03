@@ -6,7 +6,8 @@
 *.so
 *.tgz
 bin/
-helmvcs
+dist/
+helm-vcs
 vendor
 
 # Test
