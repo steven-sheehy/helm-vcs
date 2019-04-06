@@ -5,14 +5,15 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+
 	"github.com/Masterminds/semver"
 	"github.com/Masterminds/vcs"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/helm/helmpath"
 	"k8s.io/helm/pkg/repo"
-	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -22,12 +23,14 @@ var (
 	skippedFiles    = map[string]int{".git": 1, ".svn": 1}
 )
 
+// Repository represents a Helm chart repository that's backed by a VCS repository
 type Repository struct {
 	Name    string
 	Path    string
 	vcsRepo vcs.Repo
 }
 
+// NewRepository creates a chart repository
 func NewRepository(name, uri string) (*Repository, error) {
 	if uri == "" {
 		return nil, errors.New("Missing required vcs URI")
@@ -55,7 +58,7 @@ func NewRepository(name, uri string) (*Repository, error) {
 }
 
 func (r Repository) path(subPath string) string {
-	return HelmHome().Path("plugins", pluginName, "repository", r.Name, subPath)
+	return helmHome().Path("plugins", pluginName, "repository", r.Name, subPath)
 }
 
 func (r Repository) Reset() error {
@@ -69,8 +72,9 @@ func (r Repository) Reset() error {
 	return os.RemoveAll(chartPath)
 }
 
+// Update the chart repository by syncing it with the upstream VCS repo
 func (r Repository) Update() error {
-	home := HelmHome()
+	home := helmHome()
 
 	if _, err := os.Stat(r.vcsRepo.LocalPath()); os.IsNotExist(err) {
 		log.Infof("Cloning %v", r.vcsRepo.LocalPath())
@@ -168,8 +172,8 @@ func (r Repository) Update() error {
 	}
 
 	repoEntry := &repo.Entry{
-		Name: r.Name,
-		URL: repoURL,
+		Name:  r.Name,
+		URL:   repoURL,
 		Cache: home.CacheIndex(r.Name),
 	}
 
@@ -218,7 +222,7 @@ func projectName(uri string) (string, error) {
 	return name, nil
 }
 
-func HelmHome() helmpath.Home {
+func helmHome() helmpath.Home {
 	home := helmpath.Home(environment.DefaultHelmHome)
 
 	envHome := os.Getenv("HELM_HOME")
@@ -228,4 +232,3 @@ func HelmHome() helmpath.Home {
 
 	return home
 }
-
