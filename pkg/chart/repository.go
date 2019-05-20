@@ -21,7 +21,6 @@ import (
 var (
 	chartFile       = "Chart.yaml"
 	ignoredSuffixes = [5]string{"/", ".git", "/branches", "/tags", "/trunk"}
-	pluginName      = "helm-vcs"
 	skippedFiles    = map[string]bool{".git": true, ".svn": true}
 )
 
