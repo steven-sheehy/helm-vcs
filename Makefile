@@ -1,8 +1,6 @@
 BINARY  := helm-vcs
-IMAGE   := steven-sheehy/helm-vcs
 MAIN    := cmd/main.go
 PKGS    := $(shell go list ./... | grep -v vendor)
-VERSION := v0.1.0
 
 all: clean build test install
 
@@ -17,7 +15,7 @@ coverage: test
 
 install: build
 	mkdir -p ~/.helm/plugins/helm-vcs
-	cp ${BINARY} plugin.yaml LICENSE README.md ~/.helm/plugins/helm-vcs
+	cp ${BINARY} plugin.yaml *.md ~/.helm/plugins/helm-vcs
 
 lint:
 	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s
@@ -25,4 +23,3 @@ lint:
 
 test:
 	go test $(PKGS) -v -cover -coverprofile=c.out $(MAIN)
-

@@ -1,18 +1,20 @@
 package chart
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
+
+	path "github.com/steven-sheehy/helm-vcs/pkg/path"
 
 	"github.com/Masterminds/semver"
 	"github.com/Masterminds/vcs"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"k8s.io/helm/pkg/chartutil"
-	"k8s.io/helm/pkg/helm/environment"
-	"k8s.io/helm/pkg/helm/helmpath"
 	"k8s.io/helm/pkg/repo"
 )
 
@@ -20,49 +22,59 @@ var (
 	chartFile       = "Chart.yaml"
 	ignoredSuffixes = [5]string{"/", ".git", "/branches", "/tags", "/trunk"}
 	pluginName      = "helm-vcs"
-	skippedFiles    = map[string]int{".git": 1, ".svn": 1}
+	skippedFiles    = map[string]bool{".git": true, ".svn": true}
 )
 
-// Repository represents a Helm chart repository that's backed by a VCS repository
+// Repository represents a VCS backed Helm chart repository
 type Repository struct {
-	Name    string
-	Path    string
-	vcsRepo vcs.Repo
+	DisplayURI string `json:"displayURI"`
+	Name       string `json:"name"`
+	Path       string `json:"path"`
+	Ref        string `json:"ref"`
+	URI        string `json:"uri"`
+	UseTag     bool   `json:"useTag"`
+	vcsRepo    vcs.Repo
 }
 
 // NewRepository creates a chart repository
 func NewRepository(name, uri string) (*Repository, error) {
 	if uri == "" {
-		return nil, errors.New("Missing required vcs URI")
+		return nil, errors.New("Missing required URI")
 	}
 
-	r := &Repository{}
-
-	if name == "" {
-		projectName, err := projectName(uri)
-		if err != nil {
-			return nil, err
-		}
-		name = projectName
+	r := &Repository{
+		Name: name,
+		URI:  uri,
 	}
-	r.Name = name
 
-	localPath := r.path("vcs")
-	repo, err := vcs.NewRepo(uri, localPath)
+	err := r.setName(name)
 	if err != nil {
 		return nil, err
 	}
-	r.vcsRepo = repo
 
+	localPath := path.Home.Vcs(r.Name)
+	vcsRepo, err := vcs.NewRepo(uri, localPath)
+	if err != nil {
+		return nil, err
+	}
+
+	r.vcsRepo = vcsRepo
+	r.setDisplayURI(uri)
 	return r, nil
 }
 
-func (r Repository) path(subPath string) string {
-	return helmHome().Path("plugins", pluginName, "repository", r.Name, subPath)
+func (r *Repository) GetIndex() (string, error) {
+	chartDir := path.Home.Chart(r.Name)
+	indexFile := filepath.Join(chartDir, "index.yaml")
+	data, err := ioutil.ReadFile(indexFile)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
 }
 
-func (r Repository) Reset() error {
-	chartPath := r.path("chart")
+func (r *Repository) Reset() error {
+	chartPath := path.Home.Chart(r.Name)
 	_, err := os.Stat(chartPath)
 
 	if os.IsNotExist(err) {
@@ -73,9 +85,7 @@ func (r Repository) Reset() error {
 }
 
 // Update the chart repository by syncing it with the upstream VCS repo
-func (r Repository) Update() error {
-	home := helmHome()
-
+func (r *Repository) Update() error {
 	if _, err := os.Stat(r.vcsRepo.LocalPath()); os.IsNotExist(err) {
 		log.Infof("Cloning %v", r.vcsRepo.LocalPath())
 		err = r.vcsRepo.Get()
@@ -90,12 +100,12 @@ func (r Repository) Update() error {
 		}
 	}
 
-	versions, err := r.Versions()
+	versions, err := r.versions()
 	if err != nil {
 		return err
 	}
 
-	chartsPath := r.path("chart")
+	chartsPath := path.Home.Chart(r.Name)
 	startPath := r.vcsRepo.LocalPath() + r.Path + string(filepath.Separator)
 	log.Debugf("Search for charts at relative path: '%v'", r.Path)
 
@@ -160,25 +170,19 @@ func (r Repository) Update() error {
 		return err
 	}
 
-	repoFile, err := repo.LoadRepositoriesFile(home.RepositoryFile())
+	repoFile, err := repo.LoadRepositoriesFile(path.Home.RepositoryFile())
 	if err != nil {
 		return errors.Wrap(err, "Unable to load repositories file")
 	}
 
-	repoURL := r.vcsRepo.Remote()
-	protocol := string(r.vcsRepo.Vcs()) + "://"
-	if !strings.HasPrefix(repoURL, protocol) {
-		repoURL = protocol + repoURL
-	}
-
 	repoEntry := &repo.Entry{
 		Name:  r.Name,
-		URL:   repoURL,
-		Cache: home.CacheIndex(r.Name),
+		URL:   r.DisplayURI,
+		Cache: path.Home.CacheIndex(r.Name),
 	}
 
 	repoFile.Update(repoEntry)
-	err = repoFile.WriteFile(home.RepositoryFile(), 0644)
+	err = repoFile.WriteFile(path.Home.RepositoryFile(), 0644)
 	if err != nil {
 		return errors.Wrap(err, "Unable to write repositories file")
 	}
@@ -186,7 +190,8 @@ func (r Repository) Update() error {
 	return nil
 }
 
-func (r Repository) Versions() ([]*semver.Version, error) {
+// Versions lists the semantic versions found in this repository
+func (r *Repository) versions() ([]*semver.Version, error) {
 	tags, err := r.vcsRepo.Tags()
 	if err != nil {
 		return nil, err
@@ -205,30 +210,44 @@ func (r Repository) Versions() ([]*semver.Version, error) {
 	return versions, nil
 }
 
-func projectName(uri string) (string, error) {
-	name := uri
+func (r *Repository) setDisplayURI(uri string) {
+	i := strings.Index(uri, "://")
+	if i > -1 {
+		uri = uri[i+3:]
+	}
+	r.DisplayURI = string(r.vcsRepo.Vcs()) + "://" + uri
+}
 
-	for _, ignoredSuffix := range ignoredSuffixes {
-		name = strings.TrimSuffix(name, ignoredSuffix)
+func (r *Repository) setName(name string) error {
+	if name == "" {
+		name = filepath.Base(r.URI)
+		for _, ignoredSuffix := range ignoredSuffixes {
+			name = strings.TrimSuffix(name, ignoredSuffix)
+		}
 	}
 
-	name = filepath.Base(name)
-
 	if name == "" || name == "." || name == string(filepath.Separator) {
-		return "", errors.New("Unable to get repository name from URI. Please explicitly provide a name")
+		return errors.New("Unable to get repository name from URI. Please explicitly provide a name")
 	}
 
 	log.Infof("Extracted project name '%v' from URI", name)
-	return name, nil
+	r.Name = name
+	return nil
 }
 
-func helmHome() helmpath.Home {
-	home := helmpath.Home(environment.DefaultHelmHome)
-
-	envHome := os.Getenv("HELM_HOME")
-	if envHome != "" {
-		home = helmpath.Home(envHome)
+// UnmarshalJSON callback to load internal objects after unmarshalling
+func (r *Repository) UnmarshalJSON(b []byte) error {
+	type repositoryJSON Repository
+	if err := json.Unmarshal(b, (*repositoryJSON)(r)); err != nil {
+		return err
 	}
 
-	return home
+	localPath := path.Home.Vcs(r.Name)
+	vcsRepo, err := vcs.NewRepo(r.URI, localPath)
+	if err != nil {
+		return err
+	}
+
+	r.vcsRepo = vcsRepo
+	return nil
 }

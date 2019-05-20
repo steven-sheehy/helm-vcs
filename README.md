@@ -4,7 +4,7 @@
 [![License Apache](https://img.shields.io/badge/license-apache-blue.svg?style=flat)](LICENSE)
 [![GitHub release](https://img.shields.io/github/release/steven-sheehy/helm-vcs.svg)](https://github.com/steven-sheehy/helm-vcs/releases)
 
-A [Helm](https://helm.sh) plugin that turns any version control system into a chart repository
+Turns any existing version control repository into a [chart](https://helm.sh) repository
 
 ## Motivation
 
@@ -16,10 +16,10 @@ and are specific to git and GitHub.
 The goal of Helm VCS is to turn any version control system (VCS) into a chart repository, without requiring any
 changes to that repository. It does this by recursively searching the repository for [valid charts](https://helm.sh/docs/developing_charts/)
 and generating the chart repository dynamically on the client-side. By default, every tag is checked out and examined for charts.
-If needed, the search can also be done for a specific ref (branch, tag or commit). 
+If needed, the search can also be done for a specific ref (branch, tag or commit).
 
 Packaging the chart client-side alleviates developers from having to package and store chart binaries and focus purely on the source
-code. The chart artifact is generated consistently for different consumers due to it being backed by the VCS. Using the VCS with its 
+code. The chart artifact is generated consistently for different consumers due to it being backed by the VCS. Using the VCS with its
 immutable tags for chart versioning simplifies the release process.
 
 ## Installation

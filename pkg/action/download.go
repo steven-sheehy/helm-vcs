@@ -2,11 +2,13 @@ package action
 
 import (
 	"fmt"
+	"strings"
+
+	"github.com/steven-sheehy/helm-vcs/pkg/config"
+	"github.com/steven-sheehy/helm-vcs/pkg/path"
 )
 
 type DownloadAction struct {
-	Action
-
 	URI string
 }
 
@@ -17,7 +19,28 @@ func NewDownloadAction() *DownloadAction {
 }
 
 func (a DownloadAction) Run() error {
-	fmt.Printf("apiVersion: v1\nentries: {}\n")
+	config, err := config.Load(path.Home.ConfigFile())
+	if err != nil {
+		return err
+	}
+
+	uri := strings.TrimRight(a.URI, "/index.yaml")
+	repository := config.Repository(uri)
+	if repository == nil {
+		return fmt.Errorf("Missing repository %v. Try first running `helm vcs init`", uri)
+	}
+
+	err = repository.Update()
+	if err != nil {
+		return err
+	}
+
+	index, err := repository.GetIndex()
+	if err != nil {
+		return err
+	}
+
+	fmt.Print(index)
 	return nil
 }
 

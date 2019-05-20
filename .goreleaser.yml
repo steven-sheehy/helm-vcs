@@ -12,7 +12,5 @@ builds:
 
 archive:
   files:
-  - CHANGELOG.md
-  - LICENSE
-  - README.md
-  - plugin.yaml
+  - "*.md"
+  - "plugin.yaml"

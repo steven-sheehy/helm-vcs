@@ -16,14 +16,14 @@ func main() {
 
 	// Workaround Helm downloader not supporting sub-commands
 	if len(os.Args) == 5 && action.Find(os.Args[1]) == nil {
-		os.Args = append(os.Args[:1], append([]string{"download"}, os.Args[1:]...)...)
+		os.Args = append(os.Args[:1], append([]string{downloadAction.Type()}, os.Args[1:]...)...)
 	}
 
-	app := kingpin.New("helm vcs", "Turn any version control system into a Helm chart repository, no coding required")
+	app := kingpin.New("helm vcs", "Turns any existing version control repository into a chart repository")
 
 	init := app.Command(initAction.Type(), "Initialize the chart repository using the VCS repository as its source")
 	init.Arg("uri", "The VCS URI").Required().StringVar(&initAction.URI)
-	init.Flag("name", "The chart repository name. By default it will guess it from the URI").StringVar(&initAction.Name)
+	init.Flag("name", "The chart repository name. By default it will attempt to guess it from the URI").StringVar(&initAction.Name)
 	init.Flag("path", "A path within the repository that contains charts").StringVar(&initAction.Path)
 	init.Flag("ref", "A specific tag, branch or commit to checkout").StringVar(&initAction.Ref)
 	init.Flag("use-tag", "Override the Chart.yaml version with the VCS tag").BoolVar(&initAction.UseTag)
