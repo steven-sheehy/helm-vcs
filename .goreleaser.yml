@@ -11,6 +11,6 @@ builds:
   - amd64
 
 archive:
-  files:
+- files:
   - "*.md"
   - "plugin.yaml"

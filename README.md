@@ -19,8 +19,8 @@ and generating the chart repository dynamically on the client-side. By default, 
 If needed, the search can also be done for a specific ref (branch, tag or commit).
 
 Packaging the chart client-side alleviates developers from having to package and store chart binaries and focus purely on the source
-code. The chart artifact is generated consistently for different consumers due to it being backed by the VCS. Using the VCS with its
-immutable tags for chart versioning simplifies the release process.
+code. The chart artifact is generated consistently for different consumers due to it being backed by version control. Using version
+control's immutable tags for chart versioning simplifies the release process.
 
 ## Installation
 
@@ -28,22 +28,36 @@ immutable tags for chart versioning simplifies the release process.
 the release for your OS and architecture and pass the URL to `helm plugin install <URL>`. For Example:
 
 ```shell
-$ helm plugin install https://github.com/steven-sheehy/helm-vcs/releases/download/v0.1.0/helm-vcs_0.1.0_linux_amd64.tar.gz
+$ helm plugin install https://github.com/steven-sheehy/helm-vcs/releases/download/0.1.0/helm-vcs_0.1.0_linux_amd64.tar.gz
+$ chmod +x ~/.helm/plugins/helm-vcs_0.1.0_linux_amd64/helm-vcs
 ```
+
+Note: The `chmod` command is necessary since Helm doesn't [respect](https://github.com/helm/helm/pull/5627)
+the executable permission from the tar file.
 
 ## Usage
 
-Since the VCS repo may not always be a valid URI (e.g., `git@github.com:steven-sheehy/helm-vcs.git`), we can't use the
-normal approach of `helm repo add <name> <uri>`. To add a chart repository, instead use the plugin specific init command:
+### Add repository
+
+Since the VCS repo may not always be a valid URI (e.g., `git@github.com:steven-sheehy/helm-vcs.git`), the normal approach
+of `helm repo add <name> <uri>` can't be used. To add a chart repository, instead use the plugin specific init command:
 
 ```shell
 $ helm vcs init git://github.com/steven-sheehy/helm-vcs-test.git --path charts/ --tags
 ```
 
 This command will scan the URI for charts, generate an `index.yaml` from that information and add it as a chart repository to helm with the
-given name. If needed, this command can be ran multiple times to update the URI or parameters. After this one time setup, you shouldn't
-need to interact with the helm-vcs plugin again. Repository updates, chart installs, etc. will be handled by the regular Helm
-[commands](https://helm.sh/docs/helm/#see-also).
+given name. If needed, this command can be ran multiple times to update the URI or parameters.
+
+### Update repository
+
+After adding the repository, there shouldn't be a need to interact with the `helm vcs` command again. Repository updates,
+chart installs, etc. will be handled by the regular Helm [commands](https://helm.sh/docs/helm/#see-also). For example,
+this command will fetch and rescan the latest charts from VCS:
+
+```shell
+$ helm repo update
+```
 
 ## Uninstall
 
