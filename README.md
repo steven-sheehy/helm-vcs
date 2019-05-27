@@ -37,7 +37,7 @@ the executable permission from the tar file.
 
 ## Usage
 
-### Add repository
+### Add Repository
 
 Since the VCS repo may not always be a valid URI (e.g., `git@github.com:steven-sheehy/helm-vcs.git`), the normal approach
 of `helm repo add <name> <uri>` can't be used. To add a chart repository, instead use the plugin specific init command:
@@ -49,7 +49,7 @@ $ helm vcs init git://github.com/steven-sheehy/helm-vcs-test.git --path charts/ 
 This command will scan the URI for charts, generate an `index.yaml` from that information and add it as a chart repository to helm with the
 given name. If needed, this command can be ran multiple times to update the URI or parameters.
 
-### Update repository
+### Update Repository
 
 After adding the repository, there shouldn't be a need to interact with the `helm vcs` command again. Repository updates,
 chart installs, etc. will be handled by the regular Helm [commands](https://helm.sh/docs/helm/#see-also). For example,

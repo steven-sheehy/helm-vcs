@@ -10,7 +10,7 @@ builds:
   goarch:
   - amd64
 
-archive:
+archives:
 - files:
   - "*.md"
   - "plugin.yaml"
