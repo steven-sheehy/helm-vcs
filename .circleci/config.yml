@@ -9,6 +9,8 @@ workflows:
     - test
     - release:
         filters:
+          branches:
+            ignore: /.*/
           tags:
             only: /.+/
         requires:
