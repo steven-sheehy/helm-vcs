@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/steven-sheehy/helm-vcs/pkg/config"
 	"github.com/steven-sheehy/helm-vcs/pkg/path"
 )
@@ -19,6 +20,7 @@ func NewDownloadAction() *DownloadAction {
 }
 
 func (a DownloadAction) Run() error {
+	log.SetLevel(log.ErrorLevel)
 	config, err := config.Load(path.Home.ConfigFile())
 	if err != nil {
 		return err

@@ -3,6 +3,7 @@ package action
 import (
 	"fmt"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/steven-sheehy/helm-vcs/pkg/chart"
 	"github.com/steven-sheehy/helm-vcs/pkg/config"
 	"github.com/steven-sheehy/helm-vcs/pkg/path"
@@ -23,6 +24,7 @@ func NewInitAction() *InitAction {
 }
 
 func (a InitAction) Run() error {
+	log.Infof("Running init action with args: %v", a)
 	config, err := config.Load(path.Home.ConfigFile())
 	if err != nil {
 		return err
