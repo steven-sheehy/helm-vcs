@@ -11,9 +11,7 @@ type Path struct {
 	helmpath.Home
 }
 
-const (
-	plugin = "helm-vcs"
-)
+const plugin = "helm-vcs"
 
 var Home = newHome()
 

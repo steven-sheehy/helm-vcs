@@ -1,8 +1,6 @@
 package action
 
-var (
-	actions = make(map[string]Action)
-)
+var actions = make(map[string]Action)
 
 type Action interface {
 	Run() error

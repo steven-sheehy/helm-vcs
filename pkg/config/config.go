@@ -7,28 +7,29 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/steven-sheehy/helm-vcs/pkg/chart"
+	"github.com/steven-sheehy/helm-vcs/pkg/path"
 )
 
 type Config struct {
 	APIVersion   string              `json:"apiVersion,omitempty"`
 	Generated    time.Time           `json:"generated,omitempty"`
 	Repositories []*chart.Repository `json:"repositories"`
-	Path         string              `json:"-"`
 }
 
-func Load(path string) (*Config, error) {
-	_, err := os.Stat(path)
+func Load() (*Config, error) {
+	configFile := configFile()
+	_, err := os.Stat(configFile)
+
 	if os.IsNotExist(err) {
 		config := &Config{
 			APIVersion:   "v1",
 			Generated:    time.Now(),
 			Repositories: []*chart.Repository{},
-			Path:         path,
 		}
 		return config, nil
 	}
 
-	contents, err := ioutil.ReadFile(path)
+	contents, err := ioutil.ReadFile(configFile)
 	if err != nil {
 		return nil, err
 	}
@@ -39,8 +40,11 @@ func Load(path string) (*Config, error) {
 		return nil, err
 	}
 
-	config.Path = path
 	return config, nil
+}
+
+func configFile() string {
+	return path.Home.ConfigFile()
 }
 
 func (c *Config) Repository(uri string) *chart.Repository {
@@ -58,5 +62,5 @@ func (c *Config) Save() error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(c.Path, data, 0644)
+	return ioutil.WriteFile(configFile(), data, 0644)
 }
