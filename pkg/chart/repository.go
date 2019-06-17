@@ -19,9 +19,8 @@ import (
 )
 
 var (
-	chartFile       = "Chart.yaml"
-	ignoredSuffixes = [5]string{"/", ".git", "/branches", "/tags", "/trunk"}
-	skippedFiles    = map[string]bool{".git": true, ".svn": true}
+	chartFile    = "Chart.yaml"
+	skippedFiles = map[string]bool{".git": true, ".svn": true}
 )
 
 // Repository represents a VCS backed Helm chart repository
