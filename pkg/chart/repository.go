@@ -37,18 +37,9 @@ type Repository struct {
 
 // NewRepository creates a chart repository
 func NewRepository(name, uri string) (*Repository, error) {
-	if uri == "" {
-		return nil, errors.New("Missing required URI")
-	}
-
 	r := &Repository{
 		Name: name,
 		URI:  uri,
-	}
-
-	err := r.setName(name)
-	if err != nil {
-		return nil, err
 	}
 
 	localPath := path.Home.Vcs(r.Name)
@@ -215,23 +206,6 @@ func (r *Repository) setDisplayURI(uri string) {
 		uri = uri[i+3:]
 	}
 	r.DisplayURI = string(r.vcsRepo.Vcs()) + "://" + uri
-}
-
-func (r *Repository) setName(name string) error {
-	if name == "" {
-		name = filepath.Base(r.URI)
-		for _, ignoredSuffix := range ignoredSuffixes {
-			name = strings.TrimSuffix(name, ignoredSuffix)
-		}
-	}
-
-	if name == "" || name == "." || name == string(filepath.Separator) {
-		return errors.New("Unable to get repository name from URI. Please explicitly provide a name")
-	}
-
-	log.Infof("Extracted project name '%v' from URI", name)
-	r.Name = name
-	return nil
 }
 
 // UnmarshalJSON callback to load internal objects after unmarshalling
