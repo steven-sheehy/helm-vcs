@@ -43,11 +43,11 @@ Since the VCS repo may not always be a valid URI (e.g., `git@github.com:steven-s
 of `helm repo add <name> <uri>` can't be used. To add a chart repository, instead use the plugin specific init command:
 
 ```shell
-$ helm vcs init git://github.com/steven-sheehy/helm-vcs-test.git --path charts/ --tags
+$ helm vcs init myrepo git://github.com/steven-sheehy/helm-vcs-test.git --path charts/ --tags
 ```
 
 This command will scan the URI for charts, generate an `index.yaml` from that information and add it as a chart repository to helm with the
-given name. If needed, this command can be ran multiple times to update the URI or parameters.
+given name. If needed, this command can be ran multiple times to update the URI or other parameters.
 
 ### Update Repository
 

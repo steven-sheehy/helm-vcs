@@ -52,6 +52,7 @@ func NewRepository(name, uri string) (*Repository, error) {
 	return r, nil
 }
 
+// GetIndex returns the path to the dynamically generated index.yaml
 func (r *Repository) GetIndex() (string, error) {
 	chartDir := path.Home.Chart(r.Name)
 	indexFile := filepath.Join(chartDir, "index.yaml")
@@ -62,6 +63,7 @@ func (r *Repository) GetIndex() (string, error) {
 	return string(data), nil
 }
 
+// Reset removes all local files associated with this repository that this plugin created
 func (r *Repository) Reset() error {
 	chartPath := path.Home.Chart(r.Name)
 	_, err := os.Stat(chartPath)
