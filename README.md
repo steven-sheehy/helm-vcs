@@ -47,7 +47,24 @@ $ helm vcs init myrepo git://github.com/steven-sheehy/helm-vcs-test.git --path c
 ```
 
 This command will scan the URI for charts, generate an `index.yaml` from that information and add it as a chart repository to helm with the
-given name. If needed, this command can be ran multiple times to update the URI or other parameters.
+given name. If needed, this command can be ran multiple times to update the URI or other parameters. See below for a list of all options:
+
+```shell
+$ helm vcs init --help
+usage: helm vcs init [<flags>] <name> <uri>
+
+Initialize the chart repository using the VCS repository as its source
+
+Flags:
+  --help       Show context-sensitive help (also try --help-long and --help-man).
+  --path=PATH  A path within the repository that contains charts
+  --ref=REF    A specific tag, branch or commit to checkout
+  --use-tag    Override the Chart.yaml version with the VCS tag
+
+Args:
+  <name>  The chart repository name
+  <uri>   The VCS URI
+```
 
 ### Update Repository
 
