@@ -12,7 +12,7 @@ workflows:
           branches:
             ignore: /.*/
           tags:
-            only: /.+/
+            only: /.*/
         requires:
         - build
         - lint
@@ -54,4 +54,3 @@ jobs:
     - checkout
     - restore_cache: *cache
     - run: curl -sL https://git.io/goreleaser | bash
-
