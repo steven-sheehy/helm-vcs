@@ -77,7 +77,8 @@ func (r *Repository) Reset() error {
 
 // Update the chart repository by syncing it with the upstream VCS repo
 func (r *Repository) Update() error {
-	if _, err := os.Stat(r.vcsRepo.LocalPath()); os.IsNotExist(err) {
+	_, err := os.Stat(r.vcsRepo.LocalPath())
+	if os.IsNotExist(err) {
 		log.Infof("Cloning %v", r.vcsRepo.LocalPath())
 		err = r.vcsRepo.Get()
 		if err != nil {
@@ -89,11 +90,6 @@ func (r *Repository) Update() error {
 		if err != nil {
 			return err
 		}
-	}
-
-	versions, err := r.versions()
-	if err != nil {
-		return err
 	}
 
 	chartsPath := path.Home.Chart(r.Name)
@@ -110,45 +106,19 @@ func (r *Repository) Update() error {
 		return err
 	}
 
-	for _, version := range versions {
-		log.Infof("Checking out %v", version)
-		err = r.vcsRepo.UpdateVersion(version.Original())
+	if r.Ref != "" {
+		err = r.updateChart(chartsPath, startPath, r.Ref)
+	} else {
+		versions, err := r.versions()
 		if err != nil {
 			return err
 		}
 
-		err = filepath.Walk(startPath, func(path string, info os.FileInfo, err error) error {
+		for _, version := range versions {
+			err = r.updateChart(chartsPath, startPath, version.Original())
 			if err != nil {
-				log.Errorf("Unable to search path: %v", path)
+				log.Errorf("Error searching for charts: %v", err)
 			}
-
-			if _, skipped := skippedFiles[info.Name()]; skipped {
-				return filepath.SkipDir
-			}
-
-			if !info.IsDir() && info.Name() == chartFile {
-				chartPath := filepath.Dir(path)
-				chart, err := chartutil.LoadDir(chartPath)
-
-				if err != nil {
-					log.Errorf("Skipping invalid chart: %v", err)
-					return nil
-				}
-
-				_, err = chartutil.Save(chart, chartsPath)
-				if err != nil {
-					log.Errorf("Unable to save chart: %v", err)
-					return nil
-				}
-
-				log.Infof("Added new chart at %v", strings.TrimPrefix(chartPath, startPath))
-			}
-
-			return nil
-		})
-
-		if err != nil {
-			log.Errorf("Error searching for charts: %v", err)
 		}
 	}
 
@@ -177,6 +147,46 @@ func (r *Repository) Update() error {
 	if err != nil {
 		return errors.Wrap(err, "Unable to write repositories file")
 	}
+
+	return nil
+}
+
+func (r *Repository) updateChart(chartsPath, startPath, ref string) error {
+	log.Infof("Checking out %v", ref)
+	err := r.vcsRepo.UpdateVersion(ref)
+	if err != nil {
+		return err
+	}
+
+	err = filepath.Walk(startPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			log.Errorf("Unable to search path: %v", path)
+		}
+
+		if _, skipped := skippedFiles[info.Name()]; skipped {
+			return filepath.SkipDir
+		}
+
+		if !info.IsDir() && info.Name() == chartFile {
+			chartPath := filepath.Dir(path)
+			chart, err := chartutil.LoadDir(chartPath)
+
+			if err != nil {
+				log.Errorf("Skipping invalid chart: %v", err)
+				return nil
+			}
+
+			_, err = chartutil.Save(chart, chartsPath)
+			if err != nil {
+				log.Errorf("Unable to save chart: %v", err)
+				return nil
+			}
+
+			log.Infof("Added new chart at %v", strings.TrimPrefix(chartPath, startPath))
+		}
+
+		return nil
+	})
 
 	return nil
 }
