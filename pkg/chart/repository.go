@@ -180,6 +180,15 @@ func (r *Repository) updateRef(chartsPath, startPath, ref string) error {
 				return nil
 			}
 
+			if r.UseTag {
+				_, err = semver.NewVersion(ref)
+				if err != nil {
+					return errors.Wrapf(err, "Use tags option requires tags to be semantic versioned")
+				}
+
+				chart.Metadata.Version = ref
+			}
+
 			_, err = chartutil.Save(chart, chartsPath)
 			if err != nil {
 				log.Errorf("Unable to save chart: %v", err)
