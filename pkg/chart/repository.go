@@ -107,7 +107,10 @@ func (r *Repository) Update() error {
 	}
 
 	if r.Ref != "" {
-		err = r.updateChart(chartsPath, startPath, r.Ref)
+		err = r.updateRef(chartsPath, startPath, r.Ref)
+		if err != nil {
+			return err
+		}
 	} else {
 		versions, err := r.versions()
 		if err != nil {
@@ -115,7 +118,7 @@ func (r *Repository) Update() error {
 		}
 
 		for _, version := range versions {
-			err = r.updateChart(chartsPath, startPath, version.Original())
+			err = r.updateRef(chartsPath, startPath, version.Original())
 			if err != nil {
 				log.Errorf("Error searching for charts: %v", err)
 			}
@@ -151,8 +154,8 @@ func (r *Repository) Update() error {
 	return nil
 }
 
-func (r *Repository) updateChart(chartsPath, startPath, ref string) error {
-	log.Infof("Checking out %v", ref)
+func (r *Repository) updateRef(chartsPath, startPath, ref string) error {
+	log.Infof("Updating charts at ref %v", ref)
 	err := r.vcsRepo.UpdateVersion(ref)
 	if err != nil {
 		return err
@@ -161,6 +164,7 @@ func (r *Repository) updateChart(chartsPath, startPath, ref string) error {
 	err = filepath.Walk(startPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			log.Errorf("Unable to search path: %v", path)
+			return filepath.SkipDir
 		}
 
 		if _, skipped := skippedFiles[info.Name()]; skipped {
@@ -188,7 +192,7 @@ func (r *Repository) updateChart(chartsPath, startPath, ref string) error {
 		return nil
 	})
 
-	return nil
+	return err
 }
 
 // Versions lists the semantic versions found in this repository
